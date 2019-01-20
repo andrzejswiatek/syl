@@ -6,7 +6,7 @@ from skimage.filters import roberts, sobel, scharr, prewitt
 from skimage import io
 
 #image = camera()
-image = io.imread('images/tasma.png', as_gray=True);
+image = io.imread('images/tasma2.png', as_gray=True)
 edge_roberts = prewitt(image)
 edge_sobel = sobel(image)
 

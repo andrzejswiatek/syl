@@ -14,13 +14,10 @@ from skimage import feature, io
 im = io.imread('images/tasma.png', as_gray=True)
 # Compute the Canny filter for two values of sigma
 edges1 = feature.canny(im)
-edges2 = feature.canny(im, sigma=2)
-edges3 = feature.canny(im, sigma=3)
-edges4 = feature.canny(im, sigma=4)
 
-edges = [edges1, edges2, edges3, edges4]
+edges = [edges1]
 # display results
-fig, axes = plt.subplots(nrows=1, ncols=len(edges), figsize=(8, 3),
+fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(8, 3),
                                     sharex=True, sharey=True)
 
 axes[0].imshow(im, cmap=plt.cm.gray)
