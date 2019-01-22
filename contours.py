@@ -5,7 +5,7 @@ from skimage import measure
 import skimage
 from skimage.transform import radon, rescale
 
-r = skimage.io.imread('images/tasma.png', as_gray=True)
+r = skimage.io.imread('images/tasma.jpg', as_gray=True)
 # Construct some test data
 #x, y = np.ogrid[-np.pi:np.pi:100j, -np.pi:np.pi:100j]
 #r = np.sin(np.exp((np.sin(x)**3 + np.cos(y)**2)))

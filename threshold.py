@@ -4,7 +4,7 @@ from skimage.color import rgb2grey
 fig, ax = plt.subplots(nrows=2, ncols=2)
 
 #image = data.coins()
-image = rgb2grey(io.imread('images/tasma3.jpg'))
+image = rgb2grey(io.imread('images/tasma.jpg'))
 edges = filters.sobel(image)
 
 #low = 0.1

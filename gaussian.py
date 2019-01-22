@@ -11,7 +11,7 @@ from skimage import feature, io
 #im = ndi.gaussian_filter(im, 4)
 #im += 0.2 * np.random.random(im.shape)
 
-im = io.imread('images/tasma.png', as_gray=True)
+im = io.imread('images/tasma.jpg', as_gray=True)
 # Compute the Canny filter for two values of sigma
 edges1 = feature.canny(im)
 
