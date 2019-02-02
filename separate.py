@@ -8,12 +8,13 @@ from skimage.color import rgb2grey
 from skimage.transform import (probabilistic_hough_line)
 from skimage import measure
 
-def draw_images(img, ax, sigma=1):
+def draw_lines(img, ax, sigma=1):
     edges = canny(img, sigma)
     lines = probabilistic_hough_line(edges, line_length=100, line_gap=50)
     ax.imshow(edges * 0)
     ax.imshow(edges)
     for line in lines:
+        print(line)
         p0, p1 = line
         ax.plot((p0[0], p1[0]), (p0[1], p1[1]))
 
@@ -45,13 +46,15 @@ boundaries = [
     #([40,40,70], [120,200,200]),
 
     # najlepsze ustawienie
-    ([40,40,70], [100,210,210]),
+    ([40,40,70], [100,210,210])
+    #([78,113, 115], [81, 121, 120])
+    #([0,0,0], [150,150,150])
 ]
 
 
-fig, ax = plt.subplots(ncols=3, nrows=1, sharex=True, sharey=True)
+fig, ax = plt.subplots(ncols=2, nrows=2, sharex=True, sharey=True)
 image_in = img_as_float(image)
-ax[0].imshow(image_in)
+ax[0][0].imshow(image_in)
 # loop over the boundaries
 for (lower, upper) in boundaries:
     lower = np.array(lower, dtype="uint8")
@@ -67,9 +70,11 @@ for (lower, upper) in boundaries:
     #cv2.waitKey(0)
     image_out = img_as_float(output)
     mask_out = img_as_float(mask)
-    ax[1].imshow(image_out)
-    ax[2].imshow(mask_out)
-    draw_images(rgb2grey(mask_out), ax[2])
-    draw_contours(rgb2grey(mask_out), ax[2])
+    ax[0][1].imshow(image_out)
+    #ax[0][2].imshow(mask_out)
+    ax[1][0].imshow(image_out)
+    draw_lines(rgb2grey(mask_out), ax[1][0])
+    ax[1][1].imshow(image_out)
+    draw_contours(rgb2grey(mask_out), ax[1][1])
     plt.tight_layout()
     plt.show()

@@ -1,35 +1,22 @@
-import matplotlib.pyplot as plt
-from skimage import data, filters, io
-from skimage.color import rgb2grey
-fig, ax = plt.subplots(nrows=2, ncols=2)
+import cv2
+import numpy as np
+from matplotlib import pyplot as plt
 
-#image = data.coins()
-image = rgb2grey(io.imread('images/tasma.jpg'))
-edges = filters.sobel(image)
+img = cv2.imread('images/tasma.jpg',0)
+img = cv2.medianBlur(img,5)
 
-#low = 0.1
-#high = 0.35
-low = 0.1
-high = 0.9
+ret,th1 = cv2.threshold(img,127,255,cv2.THRESH_BINARY)
+th2 = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_MEAN_C,\
+            cv2.THRESH_BINARY,11,2)
+th3 = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
+            cv2.THRESH_BINARY,11,2)
 
-lowt = (edges > low).astype(int)
-hight = (edges > high).astype(int)
-hyst = filters.apply_hysteresis_threshold(edges, low, high)
+titles = ['Original Image', 'Global Thresholding (v = 127)',
+            'Adaptive Mean Thresholding', 'Adaptive Gaussian Thresholding']
+images = [img, th1, th2, th3]
 
-ax[0, 0].imshow(image, cmap='gray')
-ax[0, 0].set_title('Original image')
-
-ax[0, 1].imshow(edges, cmap='magma')
-ax[0, 1].set_title('Sobel edges')
-
-ax[1, 0].imshow(lowt, cmap='magma')
-ax[1, 0].set_title('Low threshold')
-
-ax[1, 1].imshow(hight + hyst, cmap='magma')
-ax[1, 1].set_title('Hysteresis threshold')
-
-for a in ax.ravel():
-    a.axis('off')
-
-plt.tight_layout()
+for i in range(4):
+    plt.subplot(2,2,i+1),plt.imshow(images[i],'gray')
+    plt.title(titles[i])
+    plt.xticks([]),plt.yticks([])
 plt.show()
