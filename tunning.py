@@ -5,16 +5,14 @@ from prodline import processing
 serialize_file = 'D:\\Repositories\\GITSYL\\syl\\values.pickle'
 image = cv2.imread('images/tasma.jpg')
 
-def on_change(val):
-    painter.on_change_value(processor, val)
-
-processor = processing.ImageProcessor()
-painter = painting.Painter('Image', serialize_file, on_change)
+processor = processing.ProcessorFactory().create()
+painter = painting.Painter('Monitoring linii produkcyjnej', serialize_file, processor)
+painter.assign(image)
 
 def main():
     with painter:
         painter.draw(image)
-        on_change(0)
+        painter.on_change(0)
         cv2.waitKey(0)
 
 if __name__ == "__main__":
