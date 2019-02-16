@@ -6,7 +6,7 @@ serialize_file = 'D:\\Repositories\\GITSYL\\syl\\values.pickle'
 input_file = r'D:\Projekty\MachineLearning\Sylwek\tasma.mp4'
 
 processor = processor_factory.create()
-painter = painting.Painter('Image', serialize_file, processor)
+painter = painting.Painter('Monitoring linii produkcyjnej', serialize_file, processor)
 video_processor = processing.VideoProcessor(input_file, processor, painter)
 
 with video_processor:
