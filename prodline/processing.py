@@ -1,11 +1,9 @@
 import numpy as np
 import cv2
-from skimage import img_as_float
 from skimage.feature import canny
-from skimage.color import rgb2grey
 from skimage.transform import (probabilistic_hough_line)
-
 from prodline.context import DrawingContext
+from prodline.measurement import Line
 
 
 class Processor(object):
@@ -99,57 +97,71 @@ class ContourProcessor(Processor):
     def __init__(self):
         super().__init__()
         self.contours = None
+        self.min_contour_size = 100
+        self.contour_sizes = {}
+        self.draw_contours = False
 
     def apply_parameters(self, **parameters):
         pass
 
-    def process(self, thresh):
-        contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        contours = [c for c in contours if c.size > 200]
-        self.contours = contours
-        rgb = cv2.cvtColor(thresh, cv2.COLOR_GRAY2RGB)
-        contours_top = []
-        contours_bottom = []
+    def __assign(self, thresh, c, area):
+        if c.size < self.contour_sizes.get(area, 0):
+            return
+        self.contour_sizes[area] = c.size
+        area.contours.append(c)
+        area.left_most = tuple(c[c[:, :, 0].argmin()][0])
+        area.right_most = tuple(c[c[:, :, 0].argmax()][0])
+        area.top_most = tuple(c[c[:, :, 1].argmin()][0])
+        area.bottom_most = tuple(c[c[:, :, 1].argmax()][0])
+        if area.left_most[0] > 0:
+            area.left_most = (0, area.left_most[1])
+        if area.right_most[0] < thresh.shape[1]:
+            area.right_most = (thresh.shape[1], area.right_most[1])
+        area.left_top = (min(0, area.left_most[0]), area.top_most[1])
+        area.right_top = (max(thresh.shape[1], area.right_most[0]), area.top_most[1])
+        area.left_bottom = (min(0, area.left_most[0]), area.bottom_most[1])
+        area.right_bottom = (max(thresh.shape[1], area.right_most[0]), area.bottom_most[1])
+
+    def __get_line_information(self, contours, thresh):
+        line = Line()
         for c in contours:
             left_most = tuple(c[c[:, :, 0].argmin()][0])
-            right_most = tuple(c[c[:, :, 0].argmax()][0])
-            top_most = tuple(c[c[:, :, 1].argmin()][0])
-            bottom_most = tuple(c[c[:, :, 1].argmax()][0])
-
-            if left_most[1] > thresh.shape[1]/2:
-                contours_bottom.append(c)
+            if left_most[1] > thresh.shape[1] / 2:
+                self.__assign(thresh, c, line.area_top)
             else:
-                contours_top.append(c)
-            if left_most[0] > 0:
-                left_most = (0, left_most[1])
-            if right_most[0] < thresh.shape[1]:
-                right_most = (thresh.shape[1], right_most[1])
+                self.__assign(thresh, c, line.area_bottom)
+        return line
 
-            left_top = (min(0, left_most[0]), top_most[1])
-            right_top = (max(thresh.shape[1], right_most[0]), top_most[1])
-            left_bottom = (min(0, left_most[0]), bottom_most[1])
-            right_bottom = (max(thresh.shape[1], right_most[0]), bottom_most[1])
-            print(left_most, right_most, top_most, bottom_most)
+    def __draw_area(self, rgb, area, color):
+        cv2.circle(rgb, area.left_top, 8, color, -1)
+        cv2.circle(rgb, area.right_top, 8, color, -1)
+        cv2.circle(rgb, area.left_bottom, 8, color, -1)
+        cv2.circle(rgb, area.right_bottom, 8, color, -1)
 
-            cv2.circle(rgb, left_top, 8, (0, 0, 255), -1)
-            cv2.circle(rgb, right_top, 8, (0, 0, 255), -1)
-            cv2.circle(rgb, left_bottom, 8, (0, 0, 255), -1)
-            cv2.circle(rgb, right_bottom, 8, (0, 0, 255), -1)
+        cv2.line(rgb, area.left_top, area.right_top, color, 2)
+        cv2.line(rgb, area.left_bottom, area.right_bottom, color, 2)
 
-            cv2.line(rgb, left_top, right_top, (255, 255, 0), 2)
-            cv2.line(rgb, left_bottom, right_bottom, (255, 255, 0), 2)
+        nc = (200, 200, 50)
+        cv2.putText(rgb, 'TM', area.top_most, cv2.FONT_HERSHEY_SIMPLEX, 1., nc)
+        cv2.putText(rgb, 'RM', area.right_most, cv2.FONT_HERSHEY_SIMPLEX, 1., nc)
+        cv2.putText(rgb, 'BM', area.bottom_most, cv2.FONT_HERSHEY_SIMPLEX, 1., nc)
+        cv2.putText(rgb, 'LM', area.left_most, cv2.FONT_HERSHEY_SIMPLEX, 1., nc)
 
-            cv2.putText(rgb, 'TM', top_most, cv2.FONT_HERSHEY_SIMPLEX ,1., (0, 255, 255))
-            cv2.putText(rgb, 'RM', right_most, cv2.FONT_HERSHEY_SIMPLEX, 1., (0, 255, 255))
-            cv2.putText(rgb, 'BM', bottom_most, cv2.FONT_HERSHEY_SIMPLEX, 1., (0, 255, 255))
-            cv2.putText(rgb, 'LM', left_most, cv2.FONT_HERSHEY_SIMPLEX, 1., (0, 255, 255))
+        cv2.circle(rgb, area.left_most, 8, nc, -1)
+        cv2.circle(rgb, area.right_most, 8, nc, -1)
+        cv2.circle(rgb, area.top_most, 8, nc, -1)
+        cv2.circle(rgb, area.bottom_most, 8, nc, -1)
+        if self.draw_contours:
+            cv2.drawContours(rgb, area.contours, -1, color, 2)
 
-            cv2.circle(rgb, left_most, 8, (0, 255, 255), -1)
-            cv2.circle(rgb, right_most, 8, (0, 255, 255), -1)
-            cv2.circle(rgb, top_most, 8, (0, 255, 255), -1)
-            cv2.circle(rgb, bottom_most, 8, (0, 255, 255), -1)
-        cv2.drawContours(rgb, contours_top, -1, (0, 255, 0), 2)
-        cv2.drawContours(rgb, contours_bottom, -1, (255, 0, 255), 2)
+    def process(self, thresh):
+        contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        contours = [c for c in contours if c.size > self.min_contour_size]
+        self.contours = contours
+        rgb = cv2.cvtColor(thresh, cv2.COLOR_GRAY2RGB)
+        line = self.__get_line_information(contours, thresh)
+        self.__draw_area(rgb, line.area_bottom, (255, 255, 0))
+        self.__draw_area(rgb, line.area_top, (255, 0, 255))
 
         return rgb
 
@@ -196,9 +208,6 @@ class VideoProcessor(object):
                     break
                 frame = np.rot90(frame)
                 DrawingContext.image = frame
-                #new_frame = self.processor.process(frame)
-                #self.painter.draw(new_frame)
-                #self.painter.draw(frame)
                 self.painter.on_change(0)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break

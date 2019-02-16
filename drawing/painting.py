@@ -1,8 +1,6 @@
 import cv2
 import pickle
 import os
-import numpy as np
-
 from prodline.context import DrawingContext
 
 
@@ -40,17 +38,16 @@ class Painter(object):
         self.processor = processor
         self.serialize_file = serialize_file
         self.window_name = window_name
-        self.input_window_name = 'Input image'
+        self.input_window_name = 'Obraz wejsciowy'
         self.parameter_window = 'Parametry'
         cv2.namedWindow(self.window_name, cv2.WINDOW_NORMAL)
-        #cv2.namedWindow(self.input_window_name, cv2.WINDOW_NORMAL)
+        cv2.namedWindow(self.input_window_name, cv2.WINDOW_NORMAL)
         cv2.namedWindow(self.parameter_window, cv2.WINDOW_GUI_NORMAL)
 
     def __enter__(self):
         self.__add_track_bars()
         self.__load_values()
         self.on_change(0)
-        #cv2.imshow(self.input_window_name, DrawingContext.image)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         cv2.destroyAllWindows()
@@ -60,6 +57,7 @@ class Painter(object):
 
     def draw(self, image):
         cv2.imshow(self.window_name, image)
+        cv2.imshow(self.input_window_name, DrawingContext.image)
 
     def get_value(self, track_bar_name):
         result = cv2.getTrackbarPos(track_bar_name, self.parameter_window)
