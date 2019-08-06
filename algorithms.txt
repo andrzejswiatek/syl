@@ -1,2 +1,4 @@
 https://scikit-image.org/docs/stable/auto_examples/features_detection/plot_hog.html#sphx-glr-auto-examples-features-detection-plot-hog-py
 https://scikit-image.org/docs/stable/auto_examples/applications/plot_face_detection.html#sphx-glr-auto-examples-applications-plot-face-detection-py
+
+https://docs.opencv.org/2.4/doc/user_guide/ug_traincascade.html
